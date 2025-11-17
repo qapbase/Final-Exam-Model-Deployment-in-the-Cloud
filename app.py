@@ -6,17 +6,21 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 
+# Initialize session state
+if 'image_to_process' not in st.session_state:
+    st.session_state.image_to_process = None
+
 # Define class names
 class_names = ["daisy", "dandelion", "rose", "sunflower", "tulip"]
 
-# --- App Configuration ---
+# App Configuration
 st.set_page_config(
     page_title="Flower Classification App",
     page_icon="🌸",
-    layout="centered"
+    layout="wide"
 )
 
-# --- Model Loading ---
+# Model Loading
 @st.cache_resource
 def load_my_model():
     """Loads the pre-trained Keras model from disk."""
@@ -24,7 +28,7 @@ def load_my_model():
 
 model = load_my_model()
 
-# --- Prediction Function ---
+# Prediction Function
 def predict_flower(image: Image.Image, model):
     """Preprocesses the image and returns prediction."""
     img = image.resize((150, 150))
@@ -33,14 +37,15 @@ def predict_flower(image: Image.Image, model):
     prediction = model.predict(img_array)
     return prediction
 
-# --- Main App Interface ---
-st.title("Flower Classification App")
-st.markdown(
-    "Upload a flower image or select an example to let the deep learning model predict its species. "
-    "The model can identify **daisies, dandelions, roses, sunflowers, and tulips**."
-)
+# Main App Interface
+with st.container():
+    st.title("🌸 Flower Classification App")
+    st.markdown(
+        "Upload a flower image or select an example to let the deep learning model predict its species. "
+        "The model can identify **daisies, dandelions, roses, sunflowers, and tulips**."
+    )
 
-# --- Sidebar ---
+# Sidebar
 st.sidebar.title("About the App")
 st.sidebar.info(
     "This application is a demonstration of a Convolutional Neural Network (CNN) "
@@ -50,21 +55,24 @@ st.sidebar.info(
 
 st.sidebar.header("Upload Your Image")
 uploaded_file = st.sidebar.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+if uploaded_file:
+    st.session_state.image_to_process = uploaded_file
 
 st.sidebar.header("Or Try an Example")
 example_path = "example_images"
 if st.sidebar.button("Daisy Example"):
-    uploaded_file = os.path.join(example_path, "daisy.jpg")
+    st.session_state.image_to_process = os.path.join(example_path, "daisy.jpg")
 if st.sidebar.button("Rose Example"):
-    uploaded_file = os.path.join(example_path, "rose.jpg")
+    st.session_state.image_to_process = os.path.join(example_path, "rose.jpg")
 if st.sidebar.button("Tulip Example"):
-    uploaded_file = os.path.join(example_path, "tulip.jpg")
+    st.session_state.image_to_process = os.path.join(example_path, "tulip.jpg")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Developed by Base, Angelo using Streamlit Cloud for Final Exam")
 
 
-if uploaded_file:
+if st.session_state.image_to_process:
+    uploaded_file = st.session_state.image_to_process
     try:
         image = Image.open(uploaded_file).convert("RGB")
 
